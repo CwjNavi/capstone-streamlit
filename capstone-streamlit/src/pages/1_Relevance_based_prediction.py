@@ -42,11 +42,15 @@ if 'blackscholes_prediction_row' not in st.session_state:
 histogram_event = None
 line_graph_event = None
 
+CLICKHOUSE_PASSWORD = os.getenv("clickhouse_password")
+if not os.getenv("clickhouse_password"):
+    CLICKHOUSE_PASSWORD = st.secrets["clickhouse_password"]
+
 client = clickhouse_connect.get_client(
             host='l1cqwxg3ce.ap-southeast-1.aws.clickhouse.cloud',
             port=8443,
             username='default',
-            password=(os.getenv("clickhouse_password")), # Get the updated password from tele grp
+            password=(CLICKHOUSE_PASSWORD), # Get the updated password from tele grp
             secure=True
         )
 
