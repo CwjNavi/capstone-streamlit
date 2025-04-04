@@ -4,8 +4,5 @@ relevance_based_prediction/Images/
 relevance_based_prediction/Papers/
 __pycache__/
 
-capstone-streamlit/
-
-
 env/
 .env
