@@ -66,17 +66,17 @@ print(ticker)
 
 start_date = st.date_input('Data start date: ', datetime.date(2014,11,13))
 end_date = st.date_input('Data end date: ', datetime.date(2023,9,29))
+testing_size = st.slider('Percentage of data used for testing: ', min_value=0, max_value=100, value=5)
+days_into_future = st.selectbox("Number of days into the future to predict volatility: ", options=[10, 20, 60, 120, 252])
 
 ER = EvaluateRBP()
 streamlit_ER = ST_EvaluateRBP()
 
-#df = init_df()
-days_into_future = 60
 
 @st.cache_data
 def extract_data(days_into_future, start_date, end_date, fama_industry, scale_market_cap, ticker):
     # ticker is just here to ensure that the data is re-extracted when ticker changes
-    df = ED().extract_data_for_prediction_by_group(days_into_future=days_into_future, fama_industry=fama_industry, scale_market_cap=scale_market_cap, start_date=datetime.date(2014,11,13), end_date=datetime.date(2023,9,29), additional_features=True)
+    df = ED().extract_data_for_prediction_by_group(days_into_future=days_into_future, fama_industry=fama_industry, scale_market_cap=scale_market_cap, start_date=start_date, end_date=end_date, additional_features=True)
     df["iv_error"] = df[f"iv{days_into_future}d"] - df[f"{days_into_future}_days_future_volatility"]
     print("extracted data: ", df)
 
@@ -108,7 +108,7 @@ def run_prediction():
     dates_for_graph = [str(date) for date in dates_for_graph]
     st.session_state.dates_for_graph = dates_for_graph
 
-    actual_list = predicted_vs_actual_df["60_days_future_volatility"].to_list()
+    actual_list = predicted_vs_actual_df[f"{days_into_future}_days_future_volatility"].to_list()
     predicted_list = predicted_vs_actual_df["rbp_prediction"].to_list()
 
     upper_CI_list = predicted_vs_actual_df["Upper_CI"].to_list()
