@@ -15,3 +15,5 @@ from dotenv import load_dotenv
 st.set_page_config(page_title="Relevance Based Prediction")
 st.title('JBxSUTD Julius Baer Equity Risk Monitoring')
 st.subheader('Liquid Neural Networks')
+
+st.write("🚧 work in progress, check back very soon!")
