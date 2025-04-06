@@ -144,37 +144,30 @@ def run_prediction():
                 "data": predicted_list,
                 "color": "#FF0000"
             },
-            # Invisible baseline
-            {
-                "name": "Lower Bound",
-                "type": "line",
-                "data": lower_CI_list,
-                "lineStyle": {"opacity": 0},
-                "stack": "confidence-band",
-                "symbol": "none"
-            },
-            # Visible shaded band
             {
                 "name": "Confidence Interval",
                 "type": "line",
-                "data": band_fill,
-                "lineStyle": {"opacity": 0},
+                "data": upper_CI_list,
+                "lineStyle": {
+                    "width": 0
+                },
+                "areaStyle":{
+                    "color": "#ccc",
+                    "opacity": 0.4},
+                "showSymbol": False
+            },
+            {
+                "name": "Confidence Interval",
+                "type": "line",
+                "data": lower_CI_list,
+                "lineStyle": {
+                    "width": 0
+                },
+                "showSymbol": False,
                 "areaStyle": {
                     "color": "#ccc",
                     "opacity": 0.4
-                },
-                "stack": "confidence-band",
-                "symbol": "none",
-                "tooltip": {"show": False}
-            },
-            # Transparent upper bound line for tooltip
-            {
-                "name": "Upper Confidence Bound",
-                "type": "line",
-                "data": upper_CI_list,
-                "lineStyle": {"opacity": 0},
-                "symbol": "none",
-                "tooltip": {"show": True}
+            }
             }
         ]
     }
