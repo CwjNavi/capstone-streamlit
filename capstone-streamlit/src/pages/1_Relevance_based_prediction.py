@@ -68,8 +68,8 @@ print(ticker)
 extract_data_start_date = datetime.date(2014,11,13)
 extract_data_end_date = datetime.date(2023,9,29)
 
-prediction_start_date = st.date_input('Data start date: ', datetime.date(2023,1,1))
-prediction_end_date = st.date_input('Data end date: ', datetime.date(2023,9,29))
+prediction_start_date = st.date_input('Prediction start date: ', datetime.date(2023,1,1))
+prediction_end_date = st.date_input('Prediction end date: ', datetime.date(2023,9,29))
 
 testing_size = (prediction_end_date - prediction_start_date) / (extract_data_end_date - extract_data_start_date)
 # st.write(testing_size)
