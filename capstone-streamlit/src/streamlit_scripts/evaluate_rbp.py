@@ -127,7 +127,7 @@ class EvaluateRBP:
 
         # Create ECharts options
         options = {
-            "title": {"text": "IV error in RBP subset", "left": "center"},
+            "title": {"text": f"IV error in RBP subset for {prediction_date}", "left": "center"},
             "tooltip": {"trigger": "axis"},
             "xAxis": {
                 "type": "category",

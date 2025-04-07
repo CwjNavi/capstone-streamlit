@@ -35,6 +35,10 @@ if "line_graph_options" not in st.session_state:
     st.session_state.line_graph_options = None
 if 'dates_for_graph' not in st.session_state:
     st.session_state.dates_for_graph = None
+if 'actual_list' not in st.session_state:
+    st.session_state.actual_list = None
+if 'predicted_list' not in st.session_state:
+    st.session_state.predicted_list = None
 
 if 'blackscholes_prediction_row' not in st.session_state:
     st.session_state.blackscholes_prediction_row = pd.DataFrame()
@@ -115,7 +119,9 @@ def run_prediction():
     st.session_state.dates_for_graph = dates_for_graph
 
     actual_list = predicted_vs_actual_df[f"{days_into_future}_days_future_volatility"].to_list()
+    st.session_state.actual_list = actual_list
     predicted_list = predicted_vs_actual_df["rbp_prediction"].to_list()
+    st.session_state.predicted_list = predicted_list
 
     upper_CI_list = predicted_vs_actual_df["Upper_CI"].to_list()
     lower_CI_list = predicted_vs_actual_df["Lower_CI"].to_list()
@@ -257,7 +263,13 @@ def get_histogram(response_column, df=st.session_state['extracted_df'], ticker=t
 # Display the clicked point data
 if line_graph_event:
     clicked_date = st.session_state.dates_for_graph[line_graph_event]
-    st.write(f"Chosen Date: {clicked_date}")
+    volatility_prediction = st.session_state.predicted_list[line_graph_event]
+    volatility_actual = st.session_state.actual_list[line_graph_event]
+    st.table({
+        "Chosen Date": f"{clicked_date}",
+        f"{days_into_future}_days_future_volatility": f"{volatility_prediction}",
+        "actual volatility": f"{volatility_actual}"
+              })
     show_news(clicked_date)
     histogram_options, subset_df, bin_labels = get_histogram(response_column, prediction_date=clicked_date, days_into_future=days_into_future)
     norm_df = subset_df

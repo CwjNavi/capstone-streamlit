@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 #         )
 
 st.set_page_config(page_title='JBxSUTD Julius Baer Equity Risk Monitoring')
-
+st.image('./Capstone_Volatix_logo1.PNG', width=500)
 # Title with emoji for a touch of branding flair
 st.title("📈 JB x SUTD: Julius Baer Equity Risk Monitoring")
 
@@ -33,3 +33,7 @@ st.markdown("""
 
 # Optional: Horizontal rule for visual separation
 st.markdown("---")
+
+st.markdown("""
+Educational partner: Julius Baer
+""")
