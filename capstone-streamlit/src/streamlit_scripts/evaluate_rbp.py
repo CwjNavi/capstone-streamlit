@@ -241,7 +241,7 @@ class EvaluateRBP:
             if model == "RBP":
                 def get_filtered_data(df, r_threshold):
                     """Filters the weight dataframe and removes outliers."""
-                    norm_df = df[df["weights"] > r_threshold]
+                    norm_df = df[df["Relevance Score"] > r_threshold]
                     
                     # filter outliers
                     #Q1 = norm_df['iv_error'].quantile(0.25)
@@ -272,38 +272,40 @@ class EvaluateRBP:
                         r_threshold=adj_threshold,
                     )
 
-
-                # Initial prediction
-                prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=max_lookback, adj_threshold=r_threshold)
-                norm_df = get_filtered_data(weight_df, r_threshold)
-                norm_res, data = evaluate_normality(norm_df)
-
-                # Try up to 2 more times if normality fails
-                attempt = 0
-                adj_max_lookback = max_lookback
-                adj_r_threshold = r_threshold
-
-                while norm_res < 10 and attempt < 9:
-                    #adj_max_lookback += pd.Timedelta(days=60)
-                    adj_r_threshold = round(adj_r_threshold - 0.1, 2)
-                    prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=adj_max_lookback, adj_threshold=adj_r_threshold)
+                try:
+                    # Initial prediction
+                    prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=max_lookback, adj_threshold=r_threshold)
                     norm_df = get_filtered_data(weight_df, r_threshold)
                     norm_res, data = evaluate_normality(norm_df)
-                    attempt += 1
 
-                # Calculate mean and margin of error
-                mean = norm_df[response_column].mean()
-                std = norm_df[response_column].std()
-                confidence_level = 0.95
-                z_score = norm.ppf(1 - (1 - confidence_level) / 2)  # Z-value for 95% CI
-                margin_of_error = z_score * std
+                    # Try up to 2 more times if normality fails
+                    attempt = 0
+                    adj_max_lookback = max_lookback
+                    adj_r_threshold = r_threshold
 
-                # Store results
-                pred_df_dict["prediction"].append(mean)
-                if normal_experiment == True:
-                    pred_df_dict["margin of error"].append(margin_of_error)
-                pred_df_dict["fit"].append(fit)
-                pred_df_dict["date"].append(prediction_date)
+                    while norm_res < 10 and attempt < 5:
+                        #adj_max_lookback += pd.Timedelta(days=60)
+                        adj_r_threshold = round(adj_r_threshold - 0.2, 2)
+                        prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=adj_max_lookback, adj_threshold=adj_r_threshold)
+                        norm_df = get_filtered_data(weight_df, r_threshold)
+                        norm_res, data = evaluate_normality(norm_df)
+                        attempt += 1
+
+                    # Calculate mean and margin of error
+                    mean = norm_df[response_column].mean()
+                    std = norm_df[response_column].std()
+                    confidence_level = 0.95
+                    z_score = norm.ppf(1 - (1 - confidence_level) / 2)  # Z-value for 95% CI
+                    margin_of_error = z_score * std
+
+                    # Store results
+                    pred_df_dict["prediction"].append(mean)
+                    if normal_experiment == True:
+                        pred_df_dict["margin of error"].append(margin_of_error)
+                    pred_df_dict["fit"].append(fit)
+                    pred_df_dict["date"].append(prediction_date)
+                except:
+                    print("IV prediction error")
 
                 # Plot if needed
                 # plot_iv_errors(data=data, date=prediction_date.strftime("%Y-%m-%d"), max_lookback=adj_max_lookback, r_threshold=adj_r_threshold)

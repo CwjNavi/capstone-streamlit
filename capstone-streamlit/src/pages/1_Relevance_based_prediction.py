@@ -64,17 +64,23 @@ all_tickers_list.insert(0, 'CCRN')
 ticker = st.selectbox('Stock Tickers', all_tickers_list, help="choose a stock ticker ya dick")
 print(ticker)
 
-start_date = st.date_input('Data start date: ', datetime.date(2014,11,13))
-end_date = st.date_input('Data end date: ', datetime.date(2023,9,29))
-testing_size = st.slider('Percentage of data used for testing: ', min_value=0, max_value=100, value=5)
-days_into_future = st.selectbox("Number of days into the future to predict volatility: ", options=[10, 20, 60, 120, 252])
+# for extract data
+extract_data_start_date = datetime.date(2014,11,13)
+extract_data_end_date = datetime.date(2023,9,29)
+
+prediction_start_date = st.date_input('Data start date: ', datetime.date(2023,1,1))
+prediction_end_date = st.date_input('Data end date: ', datetime.date(2023,9,29))
+
+testing_size = (prediction_end_date - prediction_start_date) / (extract_data_end_date - extract_data_start_date)
+# st.write(testing_size)
+# testing_size = st.slider('Percentage of data: ', min_value=0, max_value=100, value=5)
+days_into_future = st.selectbox("Number of days over which volatility is calculated : ", options=[10, 20, 60, 120, 252])
 
 ER = EvaluateRBP()
 streamlit_ER = ST_EvaluateRBP()
 
-
 @st.cache_data
-def extract_data(days_into_future, start_date, end_date, fama_industry, scale_market_cap, ticker):
+def extract_data(days_into_future, start_date, end_date, fama_industry, scale_market_cap):
     # ticker is just here to ensure that the data is re-extracted when ticker changes
     df = ED().extract_data_for_prediction_by_group(days_into_future=days_into_future, fama_industry=fama_industry, scale_market_cap=scale_market_cap, start_date=start_date, end_date=end_date, additional_features=True)
     df["iv_error"] = df[f"iv{days_into_future}d"] - df[f"{days_into_future}_days_future_volatility"]
@@ -96,9 +102,9 @@ def run_prediction():
     fama_industry = ticker_sector_df['famaindustry'].iloc[0] # "Business Services"
     print(scale_market_cap, fama_industry)
 
-    df = extract_data(days_into_future, start_date, end_date, fama_industry, scale_market_cap, ticker)
+    df = extract_data(days_into_future, extract_data_start_date, extract_data_end_date, fama_industry, scale_market_cap)
     st.session_state['extracted_df'] = df
-    predicted_vs_actual_df = predict(df=df, ticker=ticker)
+    predicted_vs_actual_df = predict(df=df, ticker=ticker, testing_size=testing_size)
 
     predicted_vs_actual_df['Upper_CI'] = predicted_vs_actual_df['rbp_prediction'] + predicted_vs_actual_df['margin of error']
     predicted_vs_actual_df['Lower_CI'] = predicted_vs_actual_df['rbp_prediction'] - predicted_vs_actual_df['margin of error']
@@ -174,13 +180,13 @@ def run_prediction():
 
 
 @st.cache_data
-def predict(df, ticker):
+def predict(df, ticker, testing_size):
     predicted_vs_actual_df = streamlit_ER.get_predicted_vs_actual_df(df=df, 
                                                         ticker=ticker, 
                                                         ticker_column="ticker", 
                                                         predictor_columns=predictor_columns, 
                                                         date_column="date", 
-                                                        testing_size=0.02, 
+                                                        testing_size=testing_size, 
                                                         days_into_future=days_into_future, 
                                                         max_lookback=pd.Timedelta(days=120), 
                                                         model="RBP", 
@@ -273,7 +279,7 @@ if histogram_event:
     st.dataframe(selected_norm_df)
 
 
-st.subheader("Black Scholes")
+st.subheader("Options pricing using confidence intervals")
 date_today = st.date_input("Today's date", datetime.date(2023,8,1)) # datetime.date
 option_strike_price = st.number_input('Option Strike Price (USD)', min_value=0.0, max_value=1000000.0, value=100.0, step=0.01)
 dividend_rate = st.number_input('Dividend Rate (%)', value=5)
