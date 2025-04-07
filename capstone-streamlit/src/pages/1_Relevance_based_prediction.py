@@ -61,7 +61,7 @@ all_tickers_list = ED().run_query(query="SELECT DISTINCT ticker FROM ticker_sect
 all_tickers_list = all_tickers_list['ticker'].tolist()
 all_tickers_list = sorted(all_tickers_list)
 all_tickers_list.insert(0, 'CCRN')
-ticker = st.selectbox('Stock Tickers', all_tickers_list, help="choose a stock ticker ya dick")
+ticker = st.selectbox('Stock Tickers', all_tickers_list)
 print(ticker)
 
 # for extract data
