@@ -119,12 +119,17 @@ def run_prediction():
     st.session_state.dates_for_graph = dates_for_graph
 
     actual_list = predicted_vs_actual_df[f"{days_into_future}_days_future_volatility"].to_list()
+    actual_list = [round(value, 2) for value in actual_list]
+
     st.session_state.actual_list = actual_list
     predicted_list = predicted_vs_actual_df["rbp_prediction"].to_list()
+    predicted_list = [round(value, 2) for value in predicted_list]
     st.session_state.predicted_list = predicted_list
 
     upper_CI_list = predicted_vs_actual_df["Upper_CI"].to_list()
+    upper_CI_list = [round(value, 2) for value in upper_CI_list]
     lower_CI_list = predicted_vs_actual_df["Lower_CI"].to_list()
+    lower_CI_list = [round(value, 2) for value in lower_CI_list]
     band_fill = [u - l for u, l in zip(upper_CI_list, lower_CI_list)]
 
 
@@ -325,8 +330,8 @@ stock_price = ED().run_query(query=stock_price_query)
 stock_price = stock_price['close'].iloc[0]
 
 st.number_input(label='Stock Price (USD)', value=stock_price, disabled=True)
-st.number_input(label='Volatility 90% CI (%)', value=st.session_state.volatility_90, disabled=True)
-st.number_input(label='Volatility 10% CI (%)', value=st.session_state.volatility_10, disabled=True)
+st.number_input(label='Volatility 97.5% CI (%)', value=st.session_state.volatility_90, disabled=True)
+st.number_input(label='Volatility 2.5% CI (%)', value=st.session_state.volatility_10, disabled=True)
 
 date_of_maturity = date_today + datetime.timedelta(time_to_maturity)
 
@@ -367,8 +372,8 @@ def find_options_price(option_type=option_type, stock_price=stock_price, risk_fr
 
     st.session_state.options_price_90 = blackScholes.calculate_premium(options_type=option_type, St=stock_price, X=option_strike_price, rf=risk_free_rate, q=dividend_rate, vol=volatility_upper_CI, T=time_to_maturity)
     st.session_state.options_price_10 = blackScholes.calculate_premium(options_type=option_type, St=stock_price, X=option_strike_price, rf=risk_free_rate, q=dividend_rate, vol=volatility_lower_CI, T=time_to_maturity)
-    print('90%', st.session_state.options_price_90)
-    print('10%', st.session_state.options_price_10)
+    print('97.5%', st.session_state.options_price_90)
+    print('2.5%', st.session_state.options_price_10)
 
 def find_options_price_wrapper():
     find_options_price(option_type=option_type, 
@@ -382,8 +387,16 @@ st.button("Get Options Price", key="options_price_button", on_click=find_options
 
 
 if st.session_state.options_price_90 is not None and st.session_state.options_price_10 is not None:
-    st.write(f'90 percent quartile options price: {st.session_state.options_price_90:.4f}')
-    st.write(f'10 percent quartile options price: {st.session_state.options_price_10:.4f}')
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("97.5 percent quartile options price:", f"{st.session_state.options_price_90:.4f}")
+    with col2:
+        st.metric("2.5 percent quartile options price:", f"{st.session_state.options_price_10:.4f}")
+
+    # st.write(f'97.5 percent quartile options price: {st.session_state.options_price_90:.4f}')
+    # st.write(f'2.5 percent quartile options price: {st.session_state.options_price_10:.4f}')
 elif st.session_state.blackscholes_prediction_row.empty:
     st.write(f"No option price prediction for {date_of_maturity}")
 else:

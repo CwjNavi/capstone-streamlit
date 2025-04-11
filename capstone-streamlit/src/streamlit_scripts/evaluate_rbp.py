@@ -113,6 +113,9 @@ class EvaluateRBP:
         # Create bins
         counts, bin_edges = np.histogram(data, bins=30)
         percent_counts = (counts / size) * 100
+        percent_counts = percent_counts.tolist()
+        percent_counts = [round(value, 2) for value in percent_counts]
+
         bin_labels = [f"{edge:.2f}" for edge in bin_edges]
 
         print('bin edges', len(bin_edges), bin_edges)
@@ -146,7 +149,7 @@ class EvaluateRBP:
             "grid": {"bottom": 150},  # Leave room for annotation
             "series": [{
                 "type": "bar",
-                "data": percent_counts.tolist(),
+                "data": percent_counts,
                 "barWidth": "90%",
                 "itemStyle": {"color": "blue"},
                 "emphasis": {"focus": "series"},
@@ -283,13 +286,13 @@ class EvaluateRBP:
                     adj_max_lookback = max_lookback
                     adj_r_threshold = r_threshold
 
-                    while norm_res < 10 and attempt < 5:
-                        #adj_max_lookback += pd.Timedelta(days=60)
-                        adj_r_threshold = round(adj_r_threshold - 0.2, 2)
-                        prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=adj_max_lookback, adj_threshold=adj_r_threshold)
-                        norm_df = get_filtered_data(weight_df, r_threshold)
-                        norm_res, data = evaluate_normality(norm_df)
-                        attempt += 1
+                    #while norm_res < 10 and attempt < 5:
+                    #    #adj_max_lookback += pd.Timedelta(days=60)
+                    #    adj_r_threshold = round(adj_r_threshold - 0.2, 2)
+                    #    prediction, fit, adjusted_fit, weight_df = make_prediction(lookback=adj_max_lookback, adj_threshold=adj_r_threshold)
+                    #    norm_df = get_filtered_data(weight_df, r_threshold)
+                    #    norm_res, data = evaluate_normality(norm_df)
+                    #    attempt += 1
 
                     # Calculate mean and margin of error
                     mean = norm_df[response_column].mean()
