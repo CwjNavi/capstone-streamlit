@@ -35,5 +35,5 @@ st.markdown("""
 st.markdown("---")
 
 st.markdown("""
-Educational partner: Julius Baer
+Educational partner: Bank Julius Baer
 """)

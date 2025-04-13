@@ -221,6 +221,7 @@ st.button("Predict", key="predict_button", on_click=run_prediction, type="primar
 # Create the chart and capture clicked point
 line_graph_options = st.session_state.line_graph_options
 if line_graph_options:
+    st.write("Hover over a point to view it's values, click on a point to view events that contributed to this prediction")
     line_graph_event = st_echarts(
         options=line_graph_options,
         height="400px",
@@ -276,6 +277,7 @@ if line_graph_event:
         "actual volatility": f"{volatility_actual}"
               })
     show_news(clicked_date)
+    st.write("Hover over error bars to view its value, click on an error bar to view past observations in that error bar")
     histogram_options, subset_df, bin_labels = get_histogram(response_column, prediction_date=clicked_date, days_into_future=days_into_future)
     norm_df = subset_df
     histogram_bin_labels = bin_labels
