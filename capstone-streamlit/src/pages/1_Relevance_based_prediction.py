@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 from streamlit_echarts import st_echarts
 import plotly.express as px
 from streamlit_plotly_events import plotly_events
+import requests
+from io import StringIO
 
 st.set_page_config(page_title="Relevance Based Prediction")
 
@@ -64,7 +66,9 @@ st.subheader('Relevance Based Prediction')
 all_tickers_list = ED().run_query(query="SELECT DISTINCT ticker FROM ticker_sectors")
 all_tickers_list = all_tickers_list['ticker'].tolist()
 all_tickers_list = sorted(all_tickers_list)
-all_tickers_list.insert(0, 'CCRN')
+important_tickers = ['ADSK', 'EBAY', 'WDAY']
+for tic in important_tickers:
+    all_tickers_list.insert(0, tic)
 ticker = st.selectbox('Stock Tickers', all_tickers_list)
 print(ticker)
 
@@ -132,8 +136,19 @@ def run_prediction():
     lower_CI_list = [round(value, 2) for value in lower_CI_list]
     band_fill = [u - l for u, l in zip(upper_CI_list, lower_CI_list)]
 
+    if ticker in important_tickers:
+        # LNN_preds = pd.read_csv(f"/mount/src/capstone-streamlit/capstone-streamlit/src/{ticker}_predictions_LNN.csv")
+        url = f"https://raw.githubusercontent.com/CwjNavi/capstone-streamlit/refs/heads/main/capstone-streamlit/src/{ticker}_predictions_LNN.csv"
+        response = requests.get(url)
+        if response.status_code == 200:
+            LNN_preds = pd.read_csv(StringIO(response.text))
+            LNN_preds['date'] = pd.to_datetime(LNN_preds['date'])
+        else:
+            st.error("Failed to load data from GitHub.")
+        predicted_vs_actual_df = pd.merge(predicted_vs_actual_df, LNN_preds, on='date')
+        LNN_predicted_list = predicted_vs_actual_df['predicted'].tolist()
 
-    st.session_state["line_graph_options"] = {
+        st.session_state["line_graph_options"] = {
         "title": {"text": "Relevance Based Prediction"},
         "tooltip": {
             "trigger": "axis",
@@ -156,10 +171,16 @@ def run_prediction():
                 "color": "#008000"
             },
             {
-                "name": "Predicted",
+                "name": "RBP Predicted",
                 "type": "line",
                 "data": predicted_list,
                 "color": "#FF0000"
+            },
+            {
+                "name": "LNN Predicted",
+                "type": "line",
+                "data": LNN_predicted_list,
+                "color": "#0505f5"
             },
             {
                 "name": "Confidence Interval",
@@ -188,6 +209,62 @@ def run_prediction():
             }
         ]
     }
+    else:
+        st.session_state["line_graph_options"] = {
+                "title": {"text": "Relevance Based Prediction"},
+                "tooltip": {
+                    "trigger": "axis",
+                },
+                "legend": {
+                    "top": 30,
+                    "left": "left",
+                    "data": ["Actual", "Predicted", "Confidence Interval"]
+                    },
+                "grid": {
+                    "top": 80,
+                },
+                "xAxis": {"data": dates_for_graph},
+                "yAxis": {},
+                "series": [
+                    {
+                        "name": "Actual",
+                        "type": "line",
+                        "data": actual_list,
+                        "color": "#008000"
+                    },
+                    {
+                        "name": "Predicted",
+                        "type": "line",
+                        "data": predicted_list,
+                        "color": "#FF0000"
+                    },
+                    {
+                        "name": "Confidence Interval",
+                        "type": "line",
+                        "data": upper_CI_list,
+                        "lineStyle": {
+                            "width": 0
+                        },
+                        "areaStyle":{
+                            "color": "#ccc",
+                            "opacity": 0.4},
+                        "showSymbol": False
+                    },
+                    {
+                        "name": "Confidence Interval",
+                        "type": "line",
+                        "data": lower_CI_list,
+                        "lineStyle": {
+                            "width": 0
+                        },
+                        "showSymbol": False,
+                        "areaStyle": {
+                            "color": "#ccc",
+                            "opacity": 0.4
+                    }
+                    }
+                ]
+            }
 
 
 @st.cache_data
